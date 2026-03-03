@@ -1,5 +1,4 @@
 const { setServers } = require("node:dns/promises");
-
 setServers(["1.1.1.1", "8.8.8.8"]);
 
 const {xss} = require('express-xss-sanitizer');
@@ -17,9 +16,9 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'Library API',
+      title: 'Hotel Booking API',
       version: '1.0.0',
-      description: 'A simple Express VacQ API'
+      description: 'A Hotel Booking System API'
     },
     servers:[
         {
@@ -40,8 +39,8 @@ const cors = require('cors');
 // โหลด env ก่อน
 dotenv.config({ path: './config/config.env' });
 
-const hospitals = require('./routes/hospitals');
-const appointments = require('./routes/appointments');
+const hotels = require('./routes/hotels');
+const bookings = require('./routes/bookings');
 
 const auth = require('./routes/auth');
 
@@ -55,6 +54,14 @@ connectDB();
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const app = express();
+
+// Set timeout for all requests (3 seconds as per performance requirement)
+app.use((req, res, next) => {
+    req.setTimeout(3000);
+    res.setTimeout(3000);
+    next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
@@ -62,24 +69,29 @@ app.use(xss());
 app.use(limiter);
 app.use(hpp());
 app.use(cors());
-//app.use(mongoSanitize());
+// app.use(mongoSanitize());
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
-app.use('/api/v1/hospitals', hospitals);
+app.use('/api/v1/hotels', hotels);
 app.use('/api/v1/auth', auth);
-app.use('/api/v1/appointments', appointments);
+app.use('/api/v1/bookings', bookings);
 app.set('query parser', 'extended');
 
 const PORT = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
-    res.status(200).send("Server is running");
+    res.status(200).send("Hotel Booking System API is running - Use Postman to test endpoints at /api/v1");
 });
 
 const server = app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
+    console.log(`Test with Postman at http://localhost:${PORT}/api/v1`);
 });
 
-process.on('unhandledRejection', (err, promise)=> {
+// Set server timeout to 3 seconds
+server.timeout = 3000;
+
+process.on('unhandledRejection', (err)=> {
     console.log(`Error: ${err.message}`);
     server.close(()=>process.exit(1));
 });
