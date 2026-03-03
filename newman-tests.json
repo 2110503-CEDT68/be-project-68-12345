@@ -1,578 +1,701 @@
 {
   "info": {
-    "name": "Hotel Booking System - Newman QA Tests",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "_postman_id": "4b8bab96-b473-4ec5-8680-9c1508ab6455",
+    "name": "Hotel Booking System - Custom User Flow Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48246506",
+    "_collection_link": "https://go.postman.co/collection/48246506-4b8bab96-b473-4ec5-8680-9c1508ab6455?source=collection_link"
   },
-  "variable": [
-    {"key": "base_url", "value": "http://localhost:5000/api/v1"},
-    {"key": "admin_token", "value": ""},
-    {"key": "user_token", "value": ""},
-    {"key": "user2_token", "value": ""},
-    {"key": "hotel_id", "value": ""},
-    {"key": "new_hotel_id", "value": ""},
-    {"key": "booking_id", "value": ""},
-    {"key": "user_booking_id", "value": ""}
-  ],
   "item": [
     {
-      "name": "1. Authentication Tests",
-      "item": [
+      "name": "1 User ทั่วไปลงทะเบียน | User Registration + Validation Check",
+      "event": [
         {
-          "name": "1.1 Register Admin User",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Response has token', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData).to.have.property('token');",
-                "    pm.collectionVariables.set('admin_token', jsonData.token);",
-                "});",
-                "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\":\"Test Admin\",\"telephone\":\"0899999999\",\"email\":\"testadmin@test.com\",\"password\":\"admin123\",\"role\":\"admin\"}"},
-            "url": "{{base_url}}/auth/register"
-          }
-        },
-        {
-          "name": "1.2 Register Regular User",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Response has token', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.collectionVariables.set('user_token', jsonData.token);",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\":\"Test User\",\"telephone\":\"0888888888\",\"email\":\"testuser@test.com\",\"password\":\"password123\"}"},
-            "url": "{{base_url}}/auth/register"
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "pm.test('Response has token', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "    pm.collectionVariables.set('user_token', jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
           }
         }
-,
-        {
-          "name": "1.3 Register Second User",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Response has token', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.collectionVariables.set('user2_token', jsonData.token);",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\":\"Test User 2\",\"telephone\":\"0877777777\",\"email\":\"testuser2@test.com\",\"password\":\"password123\"}"},
-            "url": "{{base_url}}/auth/register"
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
           }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Normal User\",\"telephone\":\"0811111111\",\"email\":\"normaluser@test.com\",\"password\":\"userpass123\"}"
         },
-        {
-          "name": "1.4 Login with Valid Credentials",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Returns JWT token', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData).to.have.property('token');",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"email\":\"testuser@test.com\",\"password\":\"password123\"}"},
-            "url": "{{base_url}}/auth/login"
-          }
-        },
-        {
-          "name": "1.5 Login with Invalid Credentials",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 400 or 401', () => {",
-                "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
-                "});",
-                "pm.test('Returns error message', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.success).to.be.false;",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"email\":\"testuser@test.com\",\"password\":\"wrongpassword\"}"},
-            "url": "{{base_url}}/auth/login"
-          }
-        },
-        {
-          "name": "1.6 Get Current User",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Password not returned', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data).to.not.have.property('password');",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{user_token}}"}],
-            "url": "{{base_url}}/auth/me"
-          }
-        },
-        {
-          "name": "1.7 Access Without Token (Should Fail)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 401', () => pm.response.to.have.status(401));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/auth/me"
-          }
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "2. Hotel Management Tests",
-      "item": [
+      "name": "1.2 Register Regular User",
+      "event": [
         {
-          "name": "2.1 Get All Hotels",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Returns array of hotels', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data).to.be.an('array');",
-                "    if (jsonData.data.length > 0) {",
-                "        pm.collectionVariables.set('hotel_id', jsonData.data[0]._id);",
-                "    }",
-                "});",
-                "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/hotels"
-          }
-        },
-        {
-          "name": "2.2 Get Single Hotel",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Returns hotel details', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data).to.have.property('name');",
-                "    pm.expect(jsonData.data).to.have.property('address');",
-                "    pm.expect(jsonData.data).to.have.property('telephone');",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/hotels/{{hotel_id}}"
-          }
-        },
-        {
-          "name": "2.3 Create Hotel (Admin Only)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
-                "pm.test('Hotel created', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.success).to.be.true;",
-                "    pm.collectionVariables.set('new_hotel_id', jsonData.data._id);",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{admin_token}}"}
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Response has token', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('user_token', jsonData.token);",
+              "});"
             ],
-            "body": {"mode": "raw", "raw": "{\"name\":\"Test Hotel Newman\",\"address\":\"999 Test Street\",\"telephone\":\"0266666666\"}"},
-            "url": "{{base_url}}/hotels"
-          }
-        },
-        {
-          "name": "2.4 Create Hotel (User - Should Fail)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 403', () => pm.response.to.have.status(403));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{user_token}}"}
-            ],
-            "body": {"mode": "raw", "raw": "{\"name\":\"Unauthorized Hotel\",\"address\":\"Should Fail\",\"telephone\":\"0200000000\"}"},
-            "url": "{{base_url}}/hotels"
-          }
-        },
-        {
-          "name": "2.5 Update Hotel (Admin)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{admin_token}}"}
-            ],
-            "body": {"mode": "raw", "raw": "{\"name\":\"Test Hotel Updated\"}"},
-            "url": "{{base_url}}/hotels/{{new_hotel_id}}"
-          }
-        },
-        {
-          "name": "2.6 Delete Hotel (Admin)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
-            "url": "{{base_url}}/hotels/{{new_hotel_id}}"
+            "type": "text/javascript"
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Test User\",\"telephone\":\"0888888888\",\"email\":\"testuser@test.com\",\"password\":\"password123\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "3. Booking Management Tests",
-      "item": [
+      "name": "2 User ทั่วไป log-in | User Log-in",
+      "event": [
         {
-          "name": "3.1 Create Booking (2 Nights)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
-                "pm.test('Booking created', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.success).to.be.true;",
-                "    pm.collectionVariables.set('user_booking_id', jsonData.data._id);",
-                "});",
-                "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{user_token}}"}
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns JWT token', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "    pm.collectionVariables.set('user_token', jsonData.token);",
+              "});"
             ],
-            "body": {"mode": "raw", "raw": "{\"checkInDate\":\"2025-06-15\",\"numberOfNights\":2}"},
-            "url": "{{base_url}}/hotels/{{hotel_id}}/bookings"
-          }
-        },
-        {
-          "name": "3.2 Create Booking (Max 3 Nights)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
-                "pm.test('3 nights accepted', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data.numberOfNights).to.equal(3);",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{user_token}}"}
-            ],
-            "body": {"mode": "raw", "raw": "{\"checkInDate\":\"2025-07-20\",\"numberOfNights\":3}"},
-            "url": "{{base_url}}/hotels/{{hotel_id}}/bookings"
-          }
-        },
-        {
-          "name": "3.3 Create Booking (4 Nights - Should Fail)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 400', () => pm.response.to.have.status(400));",
-                "pm.test('Validation error returned', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.success).to.be.false;",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{user_token}}"}
-            ],
-            "body": {"mode": "raw", "raw": "{\"checkInDate\":\"2025-08-10\",\"numberOfNights\":4}"},
-            "url": "{{base_url}}/hotels/{{hotel_id}}/bookings"
-          }
-        },
-        {
-          "name": "3.4 Get All Bookings (User)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Returns bookings array', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data).to.be.an('array');",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{user_token}}"}],
-            "url": "{{base_url}}/bookings"
-          }
-        },
-        {
-          "name": "3.5 Get All Bookings (Admin)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Admin sees all bookings', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data).to.be.an('array');",
-                "    if (jsonData.data.length > 0) {",
-                "        pm.collectionVariables.set('booking_id', jsonData.data[0]._id);",
-                "    }",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
-            "url": "{{base_url}}/bookings"
-          }
-        },
-        {
-          "name": "3.6 Get Single Booking",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
-                "pm.test('Returns booking details', () => {",
-                "    const jsonData = pm.response.json();",
-                "    pm.expect(jsonData.data).to.have.property('checkInDate');",
-                "    pm.expect(jsonData.data).to.have.property('numberOfNights');",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{user_token}}"}],
-            "url": "{{base_url}}/bookings/{{user_booking_id}}"
-          }
-        },
-        {
-          "name": "3.7 Update Booking",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{user_token}}"}
-            ],
-            "body": {"mode": "raw", "raw": "{\"numberOfNights\":3}"},
-            "url": "{{base_url}}/bookings/{{user_booking_id}}"
-          }
-        },
-        {
-          "name": "3.8 Update Booking (5 Nights - Should Fail)",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 400', () => pm.response.to.have.status(400));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "Authorization", "value": "Bearer {{user_token}}"}
-            ],
-            "body": {"mode": "raw", "raw": "{\"numberOfNights\":5}"},
-            "url": "{{base_url}}/bookings/{{user_booking_id}}"
-          }
-        },
-        {
-          "name": "3.9 Delete Booking",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{user_token}}"}],
-            "url": "{{base_url}}/bookings/{{user_booking_id}}"
+            "type": "text/javascript"
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"normaluser@test.com\",\"password\":\"userpass123\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "4. Security Tests",
-      "item": [
+      "name": "3 User ทั่วไปเข้า View Product | User View Product",
+      "event": [
         {
-          "name": "4.1 User Cannot Access Other User Booking",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 403 or 404', () => {",
-                "    pm.expect(pm.response.code).to.be.oneOf([403, 404]);",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{user2_token}}"}],
-            "url": "{{base_url}}/bookings/{{booking_id}}"
-          }
-        },
-        {
-          "name": "4.2 Admin Can Access Any Booking",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}],
-            "url": "{{base_url}}/bookings/{{booking_id}}"
-          }
-        },
-        {
-          "name": "4.3 Invalid Token Rejected",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Status code is 401', () => pm.response.to.have.status(401));"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer invalid_token"}],
-            "url": "{{base_url}}/bookings"
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns array of hotels and set hotel_id', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "    if (jsonData.data.length > 0) {",
+              "        pm.collectionVariables.set('hotel_id', jsonData.data[0]._id);",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/hotels",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "hotels"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "5. Performance Tests",
-      "item": [
+      "name": "4 User ทั่วไปสร้าง Booking | User Create Booking",
+      "event": [
         {
-          "name": "5.1 Response Time < 3s",
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": [
-                "pm.test('Response time < 3000ms', () => {",
-                "    pm.expect(pm.response.responseTime).to.be.below(3000);",
-                "});"
-              ]
-            }
-          }],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/hotels"
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+              "pm.test('Booking created successfully', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "    pm.collectionVariables.set('booking_id', jsonData.data._id);",
+              "});"
+            ],
+            "type": "text/javascript"
           }
         }
-      ]
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checkInDate\":\"2025-10-10\",\"numberOfNights\":2}"
+        },
+        "url": {
+          "raw": "{{base_url}}/hotels/{{hotel_id}}/bookings",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "hotels",
+            "{{hotel_id}}",
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4.1 ทดลองการสร้างไม่ตรงเงื่อนไข | Check Create Condition (> 3 Nights)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Validation error returned', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.false;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checkInDate\":\"2025-10-15\",\"numberOfNights\":5}"
+        },
+        "url": {
+          "raw": "{{base_url}}/hotels/{{hotel_id}}/bookings",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "hotels",
+            "{{hotel_id}}",
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4.2 สร้าง Booking ที่ 2 เพื่อให้ Admin ทดสอบ | Setup Second Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+              "pm.test('Second booking created', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('admin_target_booking_id', jsonData.data._id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"checkInDate\":\"2025-11-20\",\"numberOfNights\":1}"
+        },
+        "url": {
+          "raw": "{{base_url}}/hotels/{{hotel_id}}/bookings",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "hotels",
+            "{{hotel_id}}",
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5 แสดง Booking ที่สร้างไว้ | User View Own Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns bookings array', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "    pm.expect(jsonData.data.length).to.be.above(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bookings",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6 User ทั่วไป update Booking | User Edit Own Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Booking updated to 3 nights', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.numberOfNights).to.equal(3);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"numberOfNights\":3}"
+        },
+        "url": {
+          "raw": "{{base_url}}/bookings/{{booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bookings",
+            "{{booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7 User ทั่วไป delete Booking | User Delete Own Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Booking deleted successfully', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bookings/{{booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bookings",
+            "{{booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8 User ทั่วไป log-out | User Log-out",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/auth/logout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9.1 Setup: Admin Registration",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200, 201 or 400 (if already exists)', () => pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"System Admin\",\"telephone\":\"0899999999\",\"email\":\"adminflow@test.com\",\"password\":\"admin123\",\"role\":\"admin\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9 Admin log-in | Admin Log-in",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns JWT token for Admin', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "    pm.collectionVariables.set('admin_token', jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"adminflow@test.com\",\"password\":\"admin123\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10 แสดง Booking ที่สร้างไว้ | Admin View Any Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Admin sees bookings', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "    pm.expect(jsonData.data.length).to.be.above(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bookings",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bookings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11 Admin update Booking | Admin Edit Any Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Admin successfully updated booking', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.numberOfNights).to.equal(3);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"numberOfNights\":3}"
+        },
+        "url": {
+          "raw": "{{base_url}}/bookings/{{admin_target_booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bookings",
+            "{{admin_target_booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12 Admin delete Booking | Admin Delete Any Booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Admin successfully deleted booking', () => {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bookings/{{admin_target_booking_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bookings",
+            "{{admin_target_booking_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "user_token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "hotel_id",
+      "value": ""
+    },
+    {
+      "key": "booking_id",
+      "value": ""
+    },
+    {
+      "key": "admin_target_booking_id",
+      "value": ""
     }
   ]
 }
